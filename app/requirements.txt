@@ -1,0 +1,15 @@
+streamlit==1.47.1
+faster-whisper==1.1.1
+audio-recorder-streamlit==0.0.10
+uvicorn==0.24.0
+transformers==4.54.1
+pillow==11.0.0
+pydantic==2.5.0
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy==2.0.23
+python-dotenv==1.1.1
+requests==2.32.4
+python-multipart==0.0.20
+sqlalchemy==2.0.23
+timm

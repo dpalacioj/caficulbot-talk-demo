@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: caficulbot
+      POSTGRES_PASSWORD: caficulbot123
+      POSTGRES_DB: caficulbot_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - caficulbot-network
+
+  inventario:
+    build: .
+    command: python -m uvicorn databases.inventario.main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./databases/inventario:/app/databases/inventario
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://caficulbot:caficulbot123@postgres:5432/caficulbot_db
+    depends_on:
+      - postgres
+    networks:
+      - caficulbot-network
+
+  gastos:
+    build: .
+    command: python -m uvicorn databases.gastos.main:app --host 0.0.0.0 --port 8002 --reload
+    volumes:
+      - ./databases/gastos:/app/databases/gastos
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://caficulbot:caficulbot123@postgres:5432/caficulbot_db
+    depends_on:
+      - postgres
+    networks:
+      - caficulbot-network
+
+  cosecha:
+    build: .
+    command: python -m uvicorn databases.cosecha.main:app --host 0.0.0.0 --port 8003 --reload
+    volumes:
+      - ./databases/cosecha:/app/databases/cosecha
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://caficulbot:caficulbot123@postgres:5432/caficulbot_db
+    depends_on:
+      - postgres
+    networks:
+      - caficulbot-network
+
+  ingresos:
+    build: .
+    command: python -m uvicorn databases.ingresos.main:app --host 0.0.0.0 --port 8004 --reload
+    volumes:
+      - ./databases/ingresos:/app/databases/ingresos
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://caficulbot:caficulbot123@postgres:5432/caficulbot_db
+    depends_on:
+      - postgres
+    networks:
+      - caficulbot-network
+
+  api:
+    build: .
+    command: python -m uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./app:/app/app
+      - ./models:/app/models
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8000:8000"
+    environment:
+      - INVENTORY_API_BASE_URL=http://inventario:8001
+      - EXPENSES_API_BASE_URL=http://gastos:8002
+      - PRODUCTION_API_BASE_URL=http://cosecha:8003
+      - INCOME_API_BASE_URL=http://ingresos:8004
+    depends_on:
+      - inventario
+      - gastos
+      - cosecha
+      - ingresos
+    networks:
+      - caficulbot-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+
+  web:
+    build: .
+    command: streamlit run app/web.py --server.port 8501 --server.address 0.0.0.0
+    volumes:
+      - ./app:/app/app
+      - ./requirements.txt:/app/requirements.txt
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      - api
+    networks:
+      - caficulbot-network
+
+networks:
+  caficulbot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
