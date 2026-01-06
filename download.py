@@ -3,11 +3,14 @@ from huggingface_hub import snapshot_download
 from transformers import AutoProcessor, Gemma3nForConditionalGeneration
 import torch
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 model_id = "sergioq2/gemma-3N-finetune-coffe_q4_off"
 local_dir = "./models"
 
-import os
 HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
 print(f"Descargando {model_id}...")
