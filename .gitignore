@@ -1,0 +1,73 @@
+# Archivos de entorno - CRÍTICO: Contienen tokens/secretos
+.env
+.env.local
+.env.*.local
+
+# Modelos descargados (muy grandes para git)
+models/
+*.safetensors
+*.bin
+*.gguf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Bases de datos SQLite (pueden contener datos sensibles)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Streamlit
+.streamlit/
+
+# Cache de modelos de HuggingFace
+.cache/
+huggingface/
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
