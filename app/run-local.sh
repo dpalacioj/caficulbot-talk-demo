@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# CaficulBot - Script de inicio para macOS y Linux
+# Adaptado para soportar Apple Silicon (M1/M2/M3/M4) con MPS
+# y NVIDIA GPU con CUDA en Linux
+#
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -7,6 +12,7 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}   Iniciando CaficulBot - Entorno Local${NC}"
+echo -e "${GREEN}   (Adaptado para macOS/Linux)        ${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 cleanup() {
@@ -35,15 +41,35 @@ source venv/bin/activate
 echo -e "${YELLOW}Verificando dependencias...${NC}"
 pip install -q --upgrade pip
 
-if command -v nvidia-smi &> /dev/null; then
+# Detectar plataforma y configurar PyTorch apropiadamente
+if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS detectado
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        echo -e "${GREEN}Apple Silicon detectado (M1/M2/M3/M4). Instalando PyTorch con soporte MPS...${NC}"
+        pip install torch torchvision torchaudio
+    else
+        echo -e "${YELLOW}macOS Intel detectado. Instalando PyTorch para CPU...${NC}"
+        pip install torch torchvision torchaudio
+    fi
+elif command -v nvidia-smi &> /dev/null; then
     echo -e "${GREEN}GPU NVIDIA detectada. Instalando PyTorch con soporte CUDA...${NC}"
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
 else
-    echo -e "${YELLOW}No se detectó GPU NVIDIA. Instalando PyTorch para CPU...${NC}"
+    echo -e "${YELLOW}No se detectó GPU. Instalando PyTorch para CPU...${NC}"
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 fi
 
+# Verificar soporte de aceleración GPU en macOS
+if [[ "$(uname)" == "Darwin" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+    echo -e "${YELLOW}Verificando soporte MPS...${NC}"
+    python3 -c "import torch; print('✓ MPS disponible:', torch.backends.mps.is_available())" 2>/dev/null || echo -e "${RED}⚠ MPS no disponible${NC}"
+fi
+
 pip install -q -r requirements.txt
+
+# Instalar dependencias adicionales para HuggingFace y .env
+echo -e "${YELLOW}Instalando dependencias adicionales (HuggingFace, dotenv)...${NC}"
+pip install -q python-dotenv huggingface_hub
 
 LOG_DIR="logs"
 mkdir -p $LOG_DIR

@@ -1,73 +1,58 @@
-# Archivos de entorno - CRÍTICO: Contienen tokens/secretos
+# Environment variables
 .env
-.env.local
-.env.*.local
+.env/
+dataset/.env
 
-# Modelos descargados (muy grandes para git)
+# Virtual environments
+env/
+venv/
+app/venv/
+.venv/
+
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+*.so
+
+# Models (too large for git)
 models/
 *.safetensors
 *.bin
 *.gguf
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+# Build artifacts
+app/build/
+app/dist/
 *.egg-info/
-.installed.cfg
-*.egg
+build/
+dist/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb_checkpoints/
+# Logs
+app/logs/
+*.log
 
-# Bases de datos SQLite (pueden contener datos sensibles)
+# Database files
 *.db
+*.db-journal
 *.sqlite
 *.sqlite3
 
-# Logs
-logs/
-*.log
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# Streamlit
-.streamlit/
+# Testing
+test_model.py
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Cache de modelos de HuggingFace
-.cache/
-huggingface/
-
-# Archivos temporales
-tmp/
-temp/
+# Temporary files
 *.tmp
+*.bak
+.cache/

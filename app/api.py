@@ -52,16 +52,27 @@ estado de la planta o cualquier aspecto relevante relacionado con el café."""
 @app.on_event("startup")
 async def load_model():
     global pipe
-    
-    local_model_path = "./models"
-    
+
+    # El modelo está en el directorio raíz del proyecto, no en app/
+    local_model_path = "../models"
+
     if not os.path.exists(local_model_path):
         raise ValueError(f"El modelo no se encuentra en {local_model_path}")
     
+    # Detectar dispositivo disponible (MPS para macOS, CUDA para Linux, CPU fallback)
+    if torch.backends.mps.is_available():
+        device = "mps"
+    elif torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+
+    print(f"[INFO] Cargando modelo en dispositivo: {device}")
+
     pipe = pipeline(
         "image-text-to-text",
         model=local_model_path,
-        device="cuda",
+        device=device,
         torch_dtype=torch.bfloat16,
         truncation=True,
         local_files_only=True
