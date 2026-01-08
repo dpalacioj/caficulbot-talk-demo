@@ -62,3 +62,8 @@ stop_services.sh
 restart_and_verify.sh
 TROUBLESHOOTING.md
 CLAUDE.md
+
+# Documentation files (presentations, guides, slides)
+FINETUNING_GUIDE.md
+PRESENTACION_TECNICA.md
+PRESENTATION_SLIDES.md
