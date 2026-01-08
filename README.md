@@ -2,19 +2,6 @@
 
 **Caficulbot** is a fully offline, multimodal AI assistant built to empower Colombian coffee farmers with expert knowledge on cultivation, pests, diseases, and farm management. It provides real-time answers to questions, processes images of plant diseases, and performs administrative tasks, all without needing an internet connection.
 
-## 📌 About This Fork
-
-This is an **adapted version** of the original CaficulBot project by Sergio Quintero, modified for educational purposes and optimized for macOS Apple Silicon deployment.
-
-**Original project**: [sergioq2/caficulbot](https://github.com/sergioq2/caficulbot)
-**Original author**: Sergio Quintero ([sergio.quintero.1804@gmail.com](mailto:sergio.quintero.1804@gmail.com))
-
-**Modifications by**: David Palacio
-**Repository**: [dpalacioj/caficulbot-talk-demo](https://github.com/dpalacioj/caficulbot-talk-demo)
-**Purpose**: Technical presentation on AI applications in agriculture
-
-> **Note**: The original online demo has been discontinued. This fork focuses on local deployment.
-
 ---
 
 ## 💡 Example Questions (in Spanish)
@@ -195,29 +182,7 @@ Upload an image and ask: ¿Qué enfermedad tiene?
 
 ### **Original Author**
 **Author**: Sergio Quintero
-**Contact**: sergio.quintero.1804@gmail.com
-**LinkedIn**: www.linkedin.com/in/sergio-quintero-ramirez
 
 ### **Fork Maintainer**
 **Adapted by**: David Palacio
 **Repository**: [dpalacioj/caficulbot-talk-demo](https://github.com/dpalacioj/caficulbot-talk-demo)
-**Purpose**: Technical presentation on AI applications in agriculture
-
-### **License**
-MIT License (original)
-All modifications are released under the same MIT License.
-
----
-
-## 🙌 Acknowledgements
-
-**Original Project**:
-- Sergio Quintero for the original CaficulBot implementation and fine-tuning work
-
-**Technologies**:
-- CENICAFE for public technical coffee research
-- Google DeepMind for the Gemma-3N model
-- Hugging Face & Unsloth for LLM infrastructure
-
-**Community**:
-- Colombian coffee farmers — this tool is for you 🇨🇴
