@@ -2,8 +2,19 @@
 
 **Caficulbot** is a fully offline, multimodal AI assistant built to empower Colombian coffee farmers with expert knowledge on cultivation, pests, diseases, and farm management. It provides real-time answers to questions, processes images of plant diseases, and performs administrative tasks, all without needing an internet connection.
 
-> 🌐 Online demo: [http://52.205.44.176:8501/](http://52.205.44.176:8501/)
-**Note**: The first question could take a couple of minuts in been responded due to the cold start
+## 📌 About This Fork
+
+This is an **adapted version** of the original CaficulBot project by Sergio Quintero, modified for educational purposes and optimized for macOS Apple Silicon deployment.
+
+**Original project**: [sergioq2/caficulbot](https://github.com/sergioq2/caficulbot)
+**Original author**: Sergio Quintero ([sergio.quintero.1804@gmail.com](mailto:sergio.quintero.1804@gmail.com))
+
+**Modifications by**: David Palacio
+**Repository**: [dpalacioj/caficulbot-talk-demo](https://github.com/dpalacioj/caficulbot-talk-demo)
+**Purpose**: Technical presentation on AI applications in agriculture
+
+> **Note**: The original online demo has been discontinued. This fork focuses on local deployment.
+
 ---
 
 ## 💡 Example Questions (in Spanish)
@@ -41,24 +52,66 @@
 │   └── gemma3n_finetuning_coffeagent.ipynb
 '''
 ```
-# Local setup
+
+## 🔄 Modifications from Original
+
+This fork includes the following enhancements:
+
+### **Cross-Platform Support**
+- Added macOS Apple Silicon (M-series) support with MPS acceleration
+- Automatic device detection (MPS/CUDA/CPU) in `app/api.py`
+- Modified `app/run-local.sh` for macOS compatibility
+- Fixed model path resolution for different working directories
+
+### **Documentation**
+- `PRESENTACION_TECNICA.md` - Comprehensive technical documentation (Spanish, 2,122 lines)
+- `PRESENTATION_SLIDES.md` - Presentation slides for technical talks (English, 17 slides)
+- `FINETUNING_GUIDE.md` - Fine-tuning execution guide with platform recommendations
+- `CLAUDE.md` - Development guide and architecture overview
+
+### **Configuration**
+- Environment variable loading in `download.py` with `.env` support
+- Streamlit configuration files for non-interactive startup
+- Enhanced `.gitignore` for development artifacts and compiled files
+
+### **Performance Benchmarks (MacBook Pro M4 Max)**
+- Text latency: 1.8s average
+- Image latency: 3.2s average
+- Throughput: 105 tokens/sec (text), 64 tokens/sec (image)
+- VRAM usage: 6GB on MPS
+- 12.8x faster than CPU with MPS acceleration
+
+**Original project purpose**: Production deployment for Colombian coffee farmers
+**This fork's purpose**: Educational demonstration and technical presentation
+
+---
+
+# Local Setup
 
 ## 🖥️ System Requirements
 
+### **Original Requirements (Linux/NVIDIA)**
 - **OS**: Linux (Ubuntu 20.04+ recommended)
 - **Python**: 3.10+
 - **GPU**: NVIDIA GPU with at least **8GB VRAM**
 - ✅ Tested on: **NVIDIA RTX 4060 (8GB VRAM)**
 - **CUDA**: Compatible with `torch` and `transformers` (CUDA 12.1+ suggested)
 
-- 
-## 🔧 Installation (Linux)
+### **Modified Version (macOS Support)**
+- **OS**: macOS (tested on macOS Sequoia 15.4)
+- **Python**: 3.12+ (recommended for Apple Silicon)
+- **Hardware**: Apple Silicon (M-series chips)
+- ✅ **Tested on**: MacBook Pro M4 Max (36GB RAM, 32-core GPU)
+- **Acceleration**: Metal Performance Shaders (MPS)
+
+
+## 🔧 Installation
 
 ### **1. Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/caficulbot.git
-cd caficulbot
+git clone https://github.com/dpalacioj/caficulbot-talk-demo.git
+cd caficulbot-talk-demo
 ```
 
 ### **2.Make sure the script is executable**
@@ -137,21 +190,34 @@ Try asking:
 ¿Cómo debe ser el secado en el café?
 Upload an image and ask: ¿Qué enfermedad tiene?
 
-**Remote Demo (Online Version)**
-The app is also deployed to a remote EC2 instance (for demo purposes):
-http://52.205.44.176:8501/
-Note: Local offline deployment is the intended usage.
 
+## 📝 License & Contact
 
-📝 **License & Contact**
-Author: Sergio Quintero.
-Contact: sergio.quintero.1804@gmail.com
-LinkedIn: www.linkedin.com/in/sergio-quintero-ramirez
-License: MIT
+### **Original Author**
+**Author**: Sergio Quintero
+**Contact**: sergio.quintero.1804@gmail.com
+**LinkedIn**: www.linkedin.com/in/sergio-quintero-ramirez
 
-🙌 **Acknowledgements**
-CENICAFE for public technical coffee research
-Google DeepMind for the competition and gemma-3n model
-Hugging Face & Unsloth for LLM infrastructure
+### **Fork Maintainer**
+**Adapted by**: David Palacio
+**Repository**: [dpalacioj/caficulbot-talk-demo](https://github.com/dpalacioj/caficulbot-talk-demo)
+**Purpose**: Technical presentation on AI applications in agriculture
 
-Colombian coffee farmers — this tool is for you 🇨🇴
+### **License**
+MIT License (original)
+All modifications are released under the same MIT License.
+
+---
+
+## 🙌 Acknowledgements
+
+**Original Project**:
+- Sergio Quintero for the original CaficulBot implementation and fine-tuning work
+
+**Technologies**:
+- CENICAFE for public technical coffee research
+- Google DeepMind for the Gemma-3N model
+- Hugging Face & Unsloth for LLM infrastructure
+
+**Community**:
+- Colombian coffee farmers — this tool is for you 🇨🇴
