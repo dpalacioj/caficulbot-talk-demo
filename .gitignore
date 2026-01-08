@@ -61,3 +61,4 @@ htmlcov/
 stop_services.sh
 restart_and_verify.sh
 TROUBLESHOOTING.md
+CLAUDE.md
