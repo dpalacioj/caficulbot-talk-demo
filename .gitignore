@@ -56,3 +56,8 @@ htmlcov/
 *.tmp
 *.bak
 .cache/
+
+# Temporary scripts and troubleshooting docs
+stop_services.sh
+restart_and_verify.sh
+TROUBLESHOOTING.md
