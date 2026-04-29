@@ -18,34 +18,343 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Starting the Application
 
-**Local development (Linux):**
+#### Option 1: Local Development with run-local.sh (Recommended for Learning)
+
+**What is a .sh file?**
+A `.sh` file is a **shell script** - a text file containing terminal commands executed in sequence. It's like a batch file in Windows, but for Linux/macOS. Instead of typing 6 commands manually, the script automates everything.
+
+**Why use run-local.sh instead of running commands manually?**
+1. **Automation**: Creates virtual environment, installs dependencies, starts 6 services
+2. **GPU detection**: Automatically detects NVIDIA/Apple Silicon/CPU and installs appropriate PyTorch
+3. **Service orchestration**: Starts services in correct order with proper wait times
+4. **Cleanup**: Kills all processes properly when you press Ctrl+C
+5. **Logging**: Saves output to files for debugging
+
+**Step-by-step execution:**
+
 ```bash
-chmod +x app/run-local.sh
-./app/run-local.sh
+# Step 1: Download the fine-tuned model (one time only)
+python download.py
+# This downloads ~3.2 GB to ./models/
+# Takes 5-10 minutes depending on internet speed
+
+# Step 2: Navigate to app directory
+cd app
+
+# Step 3: Make the script executable (needed on Linux/macOS)
+chmod +x run-local.sh
+# Note: Windows doesn't need this step
+
+# Step 4: Run the script
+./run-local.sh
+# On Windows, use: .\run-local.sh
+
+# Step 5: Wait for all services to start
+# Expected output:
+# ✓ Servicio Inventario está activo en puerto 8001
+# ✓ Servicio Gastos está activo en puerto 8002
+# ✓ Servicio Cosecha está activo en puerto 8003
+# ✓ Servicio Ingresos está activo en puerto 8004
+# ✓ API Principal está activo en puerto 8000
+# ✓ Interfaz Web está activo en puerto 8501
+# This takes 30-40 seconds total (GPU needs time to load model)
+
+# Step 6: Open in browser
+# macOS:
+open http://localhost:8501
+# Linux:
+xdg-open http://localhost:8501
+# Windows: Manually open http://localhost:8501 in your browser
+
+# Step 7: To stop all services
+# Press Ctrl+C in the terminal
+# The script automatically:
+# - Kills all running services
+# - Cleans up ports 8000-8004 and 8501
+# - Removes temporary files
 ```
 
-This script:
-- Creates/activates a Python virtual environment
-- Installs dependencies including PyTorch with CUDA support if GPU is available
-- Starts all 6 services sequentially with proper wait times
-- Creates logs in `app/logs/` directory
-- Runs cleanup on exit (Ctrl+C)
+**What the script does internally (for understanding):**
+
+```bash
+#!/bin/bash
+
+# 1. Create virtual environment (isolated Python)
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+
+# 2. Activate virtual environment
+# This makes Python use local packages, not system packages
+source venv/bin/activate
+
+# 3. Detect GPU and install appropriate PyTorch
+if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        # Apple Silicon (M1/M2/M3/M4)
+        pip install torch torchvision torchaudio  # With MPS support
+    else
+        # Intel Mac
+        pip install torch torchvision torchaudio
+    fi
+elif command -v nvidia-smi &> /dev/null; then
+    # NVIDIA GPU on Linux
+    pip install torch ... --index-url https://download.pytorch.org/whl/cu126
+else
+    # CPU only
+    pip install torch ... --index-url https://download.pytorch.org/whl/cpu
+fi
+
+# 4. Install other dependencies
+pip install -r requirements.txt
+
+# 5. Start services one by one with waits
+cd databases/inventario
+python -m uvicorn main:app --port 8001 &  # Start in background
+sleep 2  # Wait for service to stabilize
+
+cd ../gastos
+python -m uvicorn main:app --port 8002 &
+sleep 2
+
+# ... repeat for cosecha, ingresos, api ...
+
+# 6. Start UI
+streamlit run web.py --port 8501 &
+sleep 15  # Wait longer for model to load
+
+# 7. Loop forever (until Ctrl+C)
+while true; do sleep 1; done
+```
 
 **Services started:**
-- Inventario API: `http://localhost:8001` (port 8001)
-- Gastos API: `http://localhost:8002` (port 8002)
-- Cosecha API: `http://localhost:8003` (port 8003)
-- Ingresos API: `http://localhost:8004` (port 8004)
-- Main API: `http://localhost:8000` (port 8000)
-- Streamlit Web: `http://localhost:8501` (port 8501)
+- Inventario API: `http://localhost:8001` (products/inventory)
+- Gastos API: `http://localhost:8002` (expenses)
+- Cosecha API: `http://localhost:8003` (harvest)
+- Ingresos API: `http://localhost:8004` (income)
+- Main API: `http://localhost:8000` (model inference)
+- Streamlit Web UI: `http://localhost:8501` (user interface)
 
-**Docker Compose (alternative):**
+**Troubleshooting run-local.sh:**
+
 ```bash
-cd app
-docker-compose up
+# Error: "Permission denied" or "command not found"
+→ Forgot chmod +x? Try: chmod +x app/run-local.sh
+
+# Error: "port 8000 already in use"
+→ Kill the old process:
+lsof -ti:8000 | xargs kill -9
+# Then try again
+
+# Error: "CUDA not found" or "GPU not detected"
+→ Check that you have CUDA 12.1+ installed:
+nvidia-smi
+# If not available, the script will use CPU (slower)
+
+# Error: "Model not found"
+→ You forgot step 1:
+python download.py
+
+# Error: "ModuleNotFoundError: torch"
+→ Virtual environment not activated or dependencies not installed:
+source app/venv/bin/activate
+pip install -r app/requirements.txt
+
+# Services started but can't access http://localhost:8501
+→ Wait 30 seconds more for model to load
+→ Check logs: tail -f app/logs/api.log
 ```
 
-**Desktop GUI:**
+---
+
+#### Option 2: Docker Compose (Recommended for Production/Testing)
+
+**What is Docker Compose?**
+Docker Compose is a tool that manages multiple Docker containers as one system. Instead of typing `docker run` 6 times with 20 parameters each, you write a YAML file once and use `docker-compose up`.
+
+**Advantages over run-local.sh:**
+- **Isolation**: Containers don't affect your system
+- **Reproducibility**: Works identically on any machine (Windows/Mac/Linux)
+- **Scalability**: Easy to add more instances
+- **Production-ready**: Industry standard
+
+**Step-by-step execution:**
+
+```bash
+# Step 1: Verify Docker is installed
+docker --version
+# Output should be: Docker version 24.0.x or higher
+
+# Step 2: Download the model (same as run-local.sh)
+python download.py
+
+# Step 3: Navigate to app directory
+cd app
+
+# Step 4: Build Docker images (downloads dependencies)
+docker-compose build
+# Takes 5-10 minutes (downloads ~5GB of layers)
+
+# Step 5: Start all services
+docker-compose up
+# OR in background:
+docker-compose up -d
+
+# Step 6: Wait for services to start
+# Expected output:
+# inventario_1  | INFO:     Uvicorn running on http://0.0.0.0:8001
+# gastos_1      | INFO:     Uvicorn running on http://0.0.0.0:8002
+# api_1         | Loading model weights (this takes 15-20 seconds)
+# api_1         | INFO:     Uvicorn running on http://0.0.0.0:8000
+# web_1         | Streamlit app running on http://0.0.0.0:8501
+
+# Step 7: Open in browser
+open http://localhost:8501
+
+# Step 8: View logs in real-time
+docker-compose logs -f       # All services
+docker-compose logs -f api   # Just the API
+docker-compose logs -f web   # Just the UI
+
+# Step 9: Check service status
+docker-compose ps
+# Shows which containers are running
+
+# Step 10: Stop services
+# If running in foreground:
+Ctrl+C
+# If running in background:
+docker-compose down
+# To remove everything including volumes:
+docker-compose down -v
+```
+
+**Docker Compose file explanation (docker-compose.yml):**
+
+```yaml
+version: '3.8'  # Syntax version
+
+services:       # List all containers
+  inventario:   # First service (database service)
+    build: .    # Build using Dockerfile in this directory
+    command: python -m uvicorn databases.inventario.main:app --port 8001
+    ports:
+      - "8001:8001"  # Map host port 8001 to container port 8001
+    volumes:
+      - ./app:/app/app  # Share folder between host and container
+    networks:
+      - caficulbot-network  # Connect to shared network
+
+  api:          # Second service (main model API)
+    build: .
+    command: python -m uvicorn api:app --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models  # Share model folder
+    environment:
+      # How to reach other services (by name, not localhost)
+      - INVENTORY_API_BASE_URL=http://inventario:8001
+      - EXPENSES_API_BASE_URL=http://gastos:8002
+    depends_on:
+      - inventario  # Don't start api until inventario is ready
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia  # Use NVIDIA GPU
+              count: 1
+              capabilities: [gpu]
+
+  web:          # Third service (UI)
+    build: .
+    command: streamlit run web.py --port 8501
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api  # Don't start UI until API is ready
+
+networks:
+  caficulbot-network:  # Virtual network for services to communicate
+    driver: bridge
+
+volumes:        # Persistent storage
+  postgres_data:  # Data survives container restart
+```
+
+**Key Docker Compose concepts:**
+
+| Concept | Explanation |
+|---------|-------------|
+| `build` | Build image from Dockerfile |
+| `command` | What to run inside the container |
+| `ports` | Map host_port:container_port |
+| `volumes` | Share folder between host and container |
+| `environment` | Variables available inside container |
+| `depends_on` | Start order (don't start before dependencies) |
+| `networks` | Services communicate by name (service name = hostname) |
+| `deploy.resources` | Reserve GPU/CPU resources |
+
+**Important: Service naming in Docker Compose**
+
+Inside Docker Compose, services can reach each other by **service name**, not localhost:
+
+```python
+# ✓ CORRECT (inside api container):
+response = requests.get("http://inventario:8001/consulta")
+
+# ✗ WRONG (would try to reach itself):
+response = requests.get("http://localhost:8001/consulta")
+```
+
+This is because Docker Compose creates an internal DNS that resolves service names.
+
+**Troubleshooting Docker Compose:**
+
+```bash
+# Error: "Cannot connect to Docker daemon"
+→ Docker is not running
+→ macOS: open /Applications/Docker.app
+→ Linux: sudo systemctl start docker
+
+# Error: "port 8501 already in use"
+→ Another container is using the port
+docker-compose down
+# Or check what's using it:
+lsof -ti:8501 | xargs kill -9
+
+# Error: "GPU not available"
+→ Install nvidia-docker:
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+# Or check NVIDIA Docker runtime is configured
+
+# Error: "Image build failed"
+→ Delete old images and rebuild:
+docker system prune -a
+docker-compose build --no-cache
+
+# View detailed logs
+docker-compose logs -f --tail=100 api
+```
+
+---
+
+#### Comparison: run-local.sh vs Docker Compose
+
+| Feature | run-local.sh | Docker Compose |
+|---------|--------------|-----------------|
+| Install location | Your PC/Mac | In containers |
+| Affects system | Yes (modifies) | No (isolated) |
+| Reproducibility | Depends on OS | Same everywhere |
+| Setup time | 5 minutes | 15 minutes (first time) |
+| Learning curve | Easier | Medium |
+| Production use | Not ideal | Recommended |
+| When to use | Learning/development | Team/production |
+
+---
+
+**Desktop GUI (not recommended - deprecated):**
 ```bash
 python app/main.py
 ```
